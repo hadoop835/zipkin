@@ -21,7 +21,7 @@ CREATE TYPE IF NOT EXISTS zipkin.binary_annotation (
 );
 
 CREATE TABLE IF NOT EXISTS zipkin.traces (
-    trace_id            bigint,
+    trace_id            varint,
     ts                  timestamp,
     id                  bigint,
     span_name           text,
@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS zipkin.traces (
     all_annotations     text,
     PRIMARY KEY (trace_id, ts, id)
 )
-    WITH compaction = {'class': 'org.apache.cassandra.db.compaction.TimeWindowCompactionStrategy'}
+    WITH CLUSTERING ORDER BY (ts DESC)
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.TimeWindowCompactionStrategy'}
     AND default_time_to_live =  604800;
 
 
@@ -41,7 +42,7 @@ CREATE TABLE zipkin.service_span_name_index (
     span_name     text,      // span name, or blank for queries without span name
     bucket        int,       // time bucket, calculated as ts/interval (in microseconds), for some pre-configured interval like 1 day.
     ts            timeuuid, // start timestamp of the span, truncated to millisecond precision
-    trace_id      bigint,    // trace ID
+    trace_id      varint,    // trace ID
     duration      bigint,    // span duration, in microseconds
     PRIMARY KEY ((service_name, span_name, bucket), ts)
 )
@@ -54,7 +55,8 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS zipkin.service_names
     AS SELECT service_name, span_name, bucket, ts, trace_id FROM service_span_name_index
             WHERE service_name is not null AND span_name is not null AND bucket is not null AND ts is not null
             PRIMARY KEY (service_name, bucket, span_name, ts)
-        WITH compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy', 'unchecked_tombstone_compaction': 'true', 'tombstone_threshold': '0.2'}
+        WITH CLUSTERING ORDER BY (bucket DESC, ts DESC)
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.LeveledCompactionStrategy', 'unchecked_tombstone_compaction': 'true', 'tombstone_threshold': '0.2'}
         AND default_time_to_live =  259200;
 
 CREATE CUSTOM INDEX ON zipkin.traces (all_annotations) USING 'org.apache.cassandra.index.sasi.SASIIndex'

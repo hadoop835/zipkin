@@ -1,0 +1,59 @@
+### Stress test for zipkin traces table
+
+# Keyspace Name
+keyspace: zipkin
+
+# Table name
+table: traces
+
+
+### Column Distribution Specifications ###
+
+columnspec:
+  - name: trace
+    size: fixed(32)
+    population: uniform(1..10k)
+
+  - name: ts
+    size: fixed(12)
+    population: uniform(1..10k)
+
+  - name: id
+    size: fixed(32)
+    population: uniform(1..10k)
+
+  - name: name
+    size: uniform(5..20)
+    population: uniform(1..100)
+
+  - name: duration
+    size: fixed(12)
+    population: uniform(1..10k)
+
+  - name: all_annotations
+    size: gaussian(50..500)
+    population: uniform(1..1k)
+
+
+
+### Batch Ratio Distribution Specifications ###
+
+insert:
+  partitions: fixed(1)            # 1 pertition key at a time inserts to model a message being generated
+  select:  fixed(1)/1000
+  batchtype: UNLOGGED             # Unlogged batches
+
+
+#
+# A set of basic queries
+#
+queries:
+   by_trace:
+    cql: SELECT * FROM traces WHERE trace = ?
+    fields: samerow
+   by_trace_ts_id:
+    cql: SELECT * FROM traces WHERE trace = ? AND ts = ? AND id = ?
+    fields: samerow
+   by_annotation:
+    cql: SELECT trace, ts, id FROM traces WHERE all_annotations LIKE ?
+    fields: samerow

@@ -1,0 +1,56 @@
+### Stress test for zipkin service_span_name_index table
+
+# Keyspace Name
+keyspace: zipkin
+
+# Table name
+table: service_span_name_index
+
+
+### Column Distribution Specifications ###
+
+columnspec:
+  - name: service_name
+    size: uniform(5..20)
+    population: uniform(1..100)
+
+  - name: span_name
+    size: uniform(5..20)
+    population: uniform(1..100)
+
+  - name: bucket
+    size: fixed(12)
+    population: fixed(123456789012)
+
+  - name: ts
+    size: fixed(12)
+    population: uniform(1..10k)
+
+  - name: trace_id
+    size: fixed(32)
+    population: uniform(1..10k)
+
+  - name: duration
+    size: fixed(12)
+    population: uniform(1..10k)
+
+
+
+### Batch Ratio Distribution Specifications ###
+
+insert:
+  partitions: fixed(1)            # 1 pertition key at a time inserts to model a message being generated
+  select:  fixed(1)/1000
+  batchtype: UNLOGGED             # Unlogged batches
+
+
+#
+# A set of basic queries
+#
+queries:
+   select:
+    cql: SELECT * FROM service_span_name_index WHERE service_name = ? AND span_name = ? AND bucket = ? LIMIT 1
+    fields: samerow
+   by_duration:
+    cql: SELECT * FROM service_span_name_index WHERE service_name = ? AND span_name = ? AND bucket = ? AND duration < ? LIMIT 1
+    fields: samerow

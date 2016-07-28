@@ -476,7 +476,7 @@
             <exclude>**/.idea/**</exclude>
             <exclude>LICENSE</exclude>
             <exclude>**/*.md</exclude>
-            <exclude>dsc-cassandra-*/**</exclude>
+            <exclude>apache-cassandra-*/**</exclude>
             <exclude>elasticsearch-2*/**</exclude>
             <exclude>kafka_*/**</exclude>
             <exclude>src/test/resources/**</exclude>

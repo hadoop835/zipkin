@@ -29,8 +29,8 @@ import zipkin.internal.Nullable;
 import zipkin.storage.QueryRequest;
 import zipkin.storage.guava.LazyGuavaStorageComponent;
 
-import static java.lang.String.format;
 import static zipkin.internal.Util.checkNotNull;
+import static java.lang.String.format;
 
 /**
  * CQL3 implementation of zipkin storage.
@@ -268,7 +268,7 @@ public final class CassandraStorage
   }
 
   @Override protected CassandraSpanConsumer computeGuavaSpanConsumer() {
-    return new CassandraSpanConsumer(session.get(), bucketCount, spanTtl, indexTtl, indexCacheSpec);
+    return new CassandraSpanConsumer(session.get(), bucketCount, indexCacheSpec);
   }
 
   @Override public CheckResult check() {
@@ -289,14 +289,9 @@ public final class CassandraStorage
     guavaSpanConsumer().clear();
     List<ListenableFuture<?>> futures = new LinkedList<>();
     for (String cf : ImmutableList.of(
-        "traces",
+        Tables.TRACES,
         "dependencies",
-        Tables.SERVICE_NAMES,
-        Tables.SPAN_NAMES,
-        Tables.SERVICE_NAME_INDEX,
-        Tables.SERVICE_SPAN_NAME_INDEX,
-        Tables.ANNOTATIONS_INDEX,
-        Tables.SPAN_DURATION_INDEX
+        Tables.SERVICE_SPAN_NAMES
     )) {
       futures.add(session.get().executeAsync(format("TRUNCATE %s", cf)));
     }

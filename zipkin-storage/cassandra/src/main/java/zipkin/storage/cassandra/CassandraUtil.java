@@ -18,6 +18,7 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.PreparedStatement;
 import com.google.common.base.Function;
 import com.google.common.collect.Sets;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -47,9 +48,9 @@ final class CassandraUtil {
    */
   static final int LONGEST_VALUE_TO_INDEX = 256;
 
-  // Time window covered by a single bucket of the Span Duration Index, in seconds. Default: 1hr
+  // Time window covered by a single bucket of the Span Duration Index, in seconds. Default: 1 day
   private static final long DURATION_INDEX_BUCKET_WINDOW_SECONDS
-      = Long.getLong("zipkin.store.cassandra.internal.durationIndexBucket", 60 * 60);
+      = Long.getLong("zipkin.store.cassandra.internal.durationIndexBucket", 24 * 60 * 60);
 
   public static int durationIndexBucket(long ts) {
     // if the window constant has microsecond precision, the division produces negative values
@@ -117,7 +118,7 @@ final class CassandraUtil {
     return sortedList(annotationKeys);
   }
 
-  static Function<Map<Long, Long>, Set<Long>> keyset() {
+  static Function<Map<BigInteger, Long>, Set<BigInteger>> keyset() {
     return (Function) KeySet.INSTANCE;
   }
 
@@ -133,7 +134,7 @@ final class CassandraUtil {
     }
   }
 
-  static Function<List<Map<Long, Long>>, Set<Long>> intersectKeySets() {
+  static Function<List<Map<BigInteger, Long>>, Set<BigInteger>> intersectKeySets() {
     return (Function) IntersectKeySets.INSTANCE;
   }
 

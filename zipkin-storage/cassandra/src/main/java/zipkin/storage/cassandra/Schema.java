@@ -27,9 +27,7 @@ import org.slf4j.LoggerFactory;
 final class Schema {
   private static final Logger LOG = LoggerFactory.getLogger(Schema.class);
 
-  private static final String SCHEMA = "/cassandra-schema-cql3.txt";
-
-  private static final String UPGRADE_1 = "/cassandra-schema-cql3-upgrade-1.txt";
+  private static final String SCHEMA = "/cassandra-schema.cql";
 
   private Schema() {
   }
@@ -44,21 +42,15 @@ final class Schema {
     }
     String compactionClass =
         keyspaceMetadata.getTable("traces").getOptions().getCompaction().get("class");
-    boolean hasDefaultTtl = hasUpgrade1_defaultTtl(keyspaceMetadata);
-    if (!hasDefaultTtl) {
-      LOG.warn("schema lacks default ttls: apply {}, or set CassandraStorage.ensureSchema=true",
-          UPGRADE_1);
-    }
-    return new Metadata(compactionClass, hasDefaultTtl);
+
+    return new Metadata(compactionClass);
   }
 
   static final class Metadata {
     final String compactionClass;
-    final boolean hasDefaultTtl;
 
-    Metadata(String compactionClass, boolean hasDefaultTtl) {
+    Metadata(String compactionClass) {
       this.compactionClass = compactionClass;
-      this.hasDefaultTtl = hasDefaultTtl;
     }
   }
 
@@ -83,17 +75,6 @@ final class Schema {
       // refresh metadata since we've installed the schema
       keyspaceMetadata = session.getCluster().getMetadata().getKeyspace(keyspace);
     }
-    if (!hasUpgrade1_defaultTtl(keyspaceMetadata)) {
-      LOG.info("Upgrading schema {}", UPGRADE_1);
-      applyCqlFile(keyspace, session, UPGRADE_1);
-    }
-  }
-
-  static boolean hasUpgrade1_defaultTtl(KeyspaceMetadata keyspaceMetadata) {
-    // TODO: we need some approach to forward-check compatibility as well.
-    //  backward: this code knows the current schema is too old.
-    //  forward:  this code knows the current schema is too new.
-    return keyspaceMetadata.getTable("traces").getOptions().getDefaultTimeToLive() > 0;
   }
 
   static void applyCqlFile(String keyspace, Session session, String resource) {

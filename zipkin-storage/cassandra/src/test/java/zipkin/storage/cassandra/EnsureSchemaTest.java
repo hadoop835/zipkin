@@ -67,7 +67,6 @@ public class EnsureSchemaTest {
 
     KeyspaceMetadata metadata = session.getCluster().getMetadata().getKeyspace(keyspace);
     assertThat(metadata).isNotNull();
-    assertThat(Schema.hasUpgrade1_defaultTtl(metadata)).isTrue();
   }
 
   @Test public void installsTablesWhenMissing() {
@@ -78,7 +77,6 @@ public class EnsureSchemaTest {
 
     KeyspaceMetadata metadata = session.getCluster().getMetadata().getKeyspace(keyspace);
     assertThat(metadata).isNotNull();
-    assertThat(Schema.hasUpgrade1_defaultTtl(metadata)).isTrue();
   }
 
   @Test public void upgradesOldSchema() {
@@ -88,6 +86,5 @@ public class EnsureSchemaTest {
 
     KeyspaceMetadata metadata = session.getCluster().getMetadata().getKeyspace(keyspace);
     assertThat(metadata).isNotNull();
-    assertThat(Schema.hasUpgrade1_defaultTtl(metadata)).isTrue();
   }
 }
